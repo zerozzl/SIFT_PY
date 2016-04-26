@@ -2,26 +2,11 @@
 import numpy as np
 import math
 import Image
-import matplotlib.pyplot as plt
-
-# img_src = Image.open("Z:/SIFT/my.png");
-# width, height = img_src.size;
-# img_lar = img_src.resize((2 * width, 2 * height));
-# 
-# print img_src.size;
-# print img_lar.size;
-# 
-# 
-# fig = plt.figure();
-# ax1 = fig.add_subplot(121);
-# ax2 = fig.add_subplot(122);
-# ax1.imshow(img_src);
-# ax2.imshow(img_lar);
-# plt.show();
-# 
-# img_lar.save("Z:/SIFT/my_l.jpg") 
+from GaussianBlur import GaussianBlur
+import Others
 
 def build_gaussian_pyramid(image, sigma_0, octave, scale):
+    print "building gaussian pyramid......";
     sigmas = np.zeros(scale + 3);
     pyramid = [];
     
@@ -34,27 +19,59 @@ def build_gaussian_pyramid(image, sigma_0, octave, scale):
         sigmas[i] = np.sqrt(np.square(sig_cur) - np.square(sig_pre));
     
     for o in range(octave):
-        target = [];
-        for i in range(scale):
+        print "process octave " + str(o + 1) + "/" + str(octave);
+        oct_o = [];
+        for i in range(scale + 3):
             if o == 0 and i == 0:
-                target.append(image);
+                oct_o.append(image);
             elif i == 0:
-                pass;
-#                 img = pyramid[o - 1][scale];
-#                 
-#                 target.append();
+                img = pyramid[o - 1][scale];
+                oct_o.append(img.resize((img.size[0] / 2, img.size[1] / 2)));
+            else:
+                img = oct_o[i - 1];
+                img_blur = img.filter(GaussianBlur(sigmas[i]));
+                oct_o.append(img_blur);
+        pyramid.append(oct_o);
     
-    print sigmas;
+    return pyramid;
+
+def build_DoG_pyramid(gaussian_pyramid):
+    print "building DoG pyramid......";
+    pyramid = [];
+    octave = len(gaussian_pyramid);
     
-def build(filepath):
-    image = Image.open(filepath);
+    for o in range(octave):
+        print "process octave " + str(o + 1) + "/" + str(octave);
+        oct_o = [];
+        scale = len(gaussian_pyramid[o]);
+        for s in range(scale - 1):
+            diff = np.array(gaussian_pyramid[o][s + 1]) - np.array(gaussian_pyramid[o][s]);
+            oct_o.append(diff);
+        pyramid.append(oct_o);
+    
+    return pyramid;
+ 
+def build_pyramid(root, filename):
+    image = Image.open(root + filename);
     image = image.resize((2 * image.size[0], 2 * image.size[1])).convert("L");
-    octave = int(np.log2(min(image.size))) - 2;
+    octave = int(np.log2(min(image.size))) - 3;
     sigma_0 = 1.6;
     scale = 3;
     
-    image = np.array(image);
-    build_gaussian_pyramid(image, sigma_0, octave, scale);
+    gaussian_pyramid = build_gaussian_pyramid(image, sigma_0, octave, scale);
+    # 导出高斯金字塔
+    gaussian_pyramid_folder = root + "/gaussian_pyramid/";
+    gaussian_pyramid_file = gaussian_pyramid_folder + "gaussian_pyramid.txt";
+    Others.export_pyramid(gaussian_pyramid_file, gaussian_pyramid);
+    Others.plot_pyramid(gaussian_pyramid_file, gaussian_pyramid_folder)
 
-filepath = "Z:/SIFT/my.png";
-build(filepath);
+    dog_pyramid = build_DoG_pyramid(gaussian_pyramid);
+    # 导出高斯差分金字塔
+    dog_pyramid_folder = root + "/dog_pyramid/";
+    dog_pyramid_file = dog_pyramid_folder + "dog_pyramid.txt";
+    Others.export_pyramid(dog_pyramid_file, dog_pyramid);
+    Others.plot_pyramid(dog_pyramid_file, dog_pyramid_folder)
+
+root = "Z:/SIFT/";
+filename = "lena.jpg";
+build_pyramid(root, filename);
