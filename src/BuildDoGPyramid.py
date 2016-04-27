@@ -51,27 +51,27 @@ def build_DoG_pyramid(gaussian_pyramid):
     
     return pyramid;
  
-def build_pyramid(root, filename):
+def build_pyramid(root, filename, sigma_0, scale, export=False):
     image = Image.open(root + filename);
     image = image.resize((2 * image.size[0], 2 * image.size[1])).convert("L");
     octave = int(np.log2(min(image.size))) - 3;
-    sigma_0 = 1.6;
-    scale = 3;
     
+    # 构建高斯金字塔
     gaussian_pyramid = build_gaussian_pyramid(image, sigma_0, octave, scale);
-    # 导出高斯金字塔
-    gaussian_pyramid_folder = root + "/gaussian_pyramid/";
-    gaussian_pyramid_file = gaussian_pyramid_folder + "gaussian_pyramid.txt";
-    Others.export_pyramid(gaussian_pyramid_file, gaussian_pyramid);
-    Others.plot_pyramid(gaussian_pyramid_file, gaussian_pyramid_folder)
-
+    # 构建高斯差分金字塔
     dog_pyramid = build_DoG_pyramid(gaussian_pyramid);
-    # 导出高斯差分金字塔
-    dog_pyramid_folder = root + "/dog_pyramid/";
-    dog_pyramid_file = dog_pyramid_folder + "dog_pyramid.txt";
-    Others.export_pyramid(dog_pyramid_file, dog_pyramid);
-    Others.plot_pyramid(dog_pyramid_file, dog_pyramid_folder)
+    
+    if export == True:
+        # 导出高斯金字塔
+        gaussian_pyramid_folder = root + "/gaussian_pyramid/";
+        gaussian_pyramid_file = gaussian_pyramid_folder + "gaussian_pyramid.txt";
+        Others.export_pyramid(gaussian_pyramid_file, gaussian_pyramid);
+        Others.plot_pyramid(gaussian_pyramid_file, gaussian_pyramid_folder)
 
-root = "Z:/SIFT/";
-filename = "lena.jpg";
-build_pyramid(root, filename);
+        # 导出高斯差分金字塔
+        dog_pyramid_folder = root + "/dog_pyramid/";
+        dog_pyramid_file = dog_pyramid_folder + "dog_pyramid.txt";
+        Others.export_pyramid(dog_pyramid_file, dog_pyramid);
+        Others.plot_pyramid(dog_pyramid_file, dog_pyramid_folder)
+    
+    return dog_pyramid;
