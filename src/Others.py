@@ -21,8 +21,8 @@ def image_to_string(image):
             s += str(array[i, j]) + ",";
     return s[:-1];
 
-def plot_pyramid(modelfile, plotfolder):
-    print "ploting pyramid ......";
+def load_pyramid(modelfile):
+    print "loading \"" + modelfile + "\" ......";
     file = open(modelfile);
     pyramid = [];
     index = -1;
@@ -51,6 +51,12 @@ def plot_pyramid(modelfile, plotfolder):
             data = np.reshape(data, (m, n));
             octave.append(data);
     file.close();
+    
+    return pyramid;
+
+def plot_pyramid(modelfile, plotfolder):
+    print "ploting pyramid ......";
+    pyramid = load_pyramid(modelfile);
     
     for o in range(len(pyramid)):
         for s in range(len(pyramid[o])):
