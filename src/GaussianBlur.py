@@ -2,6 +2,7 @@
 from PIL import Image, ImageFilter
 import math
 
+# 高斯模糊
 class GaussianBlur(ImageFilter.Filter):
     
     def __init__(self, sigma):
