@@ -3,19 +3,21 @@ import numpy as np
 import math
 from GaussianBlur import GaussianBlur
 
+import cv2
+
 # 构建高斯金字塔
-def build_gaussian_pyramid(base, sigma_0, nOctaves, nOctaveLayers):
+def build_gaussian_pyramid(base, sigma, nOctaves, nOctaveLayers):
     print "Building gaussian pyramid......";
-    sigmas = np.zeros(nOctaveLayers + 3);
+    sig = np.zeros(nOctaveLayers + 3);
     gpyr = [];
     
-    sigmas[0] = sigma_0;
+    sig[0] = sigma;
     k = math.pow(2.0, 1.0 / nOctaveLayers);
     
     for i in range(1, nOctaveLayers + 3):
-        sig_pre = math.pow(k, i - 1) * sigma_0;
+        sig_pre = math.pow(k, i - 1) * sigma;
         sig_cur = sig_pre * k;
-        sigmas[i] = np.sqrt(sig_cur * sig_cur - sig_pre * sig_pre);
+        sig[i] = np.sqrt(sig_cur * sig_cur - sig_pre * sig_pre);
     
     for o in range(nOctaves):
         for i in range(nOctaveLayers + 3):
@@ -26,7 +28,7 @@ def build_gaussian_pyramid(base, sigma_0, nOctaves, nOctaveLayers):
                 gpyr.append(img.resize((img.size[0] / 2, img.size[1] / 2)));
             else:
                 img = gpyr[o * (nOctaveLayers + 3) + i - 1];
-                gpyr.append(img.filter(GaussianBlur(sigmas[i])));
+                gpyr.append(img.filter(GaussianBlur(sig[i])));
     
     return gpyr;
 
@@ -36,7 +38,12 @@ def build_DoG_pyramid(gpyr, nOctaves, nOctaveLayers):
     dogpyr = [];
     for o in range(nOctaves):
         for i in range(nOctaveLayers + 2):
-            diff = np.array(gpyr[o*(nOctaveLayers + 3) + i]) - np.array(gpyr[o*(nOctaveLayers + 3) + i + 1]);
+            src1 = gpyr[o * (nOctaveLayers + 3) + i];
+            src2 = gpyr[o * (nOctaveLayers + 3) + i + 1];
+            height, width = np.shape(src1);
+            src1= np.reshape(src1.getdata(), (height, width));
+            src2= np.reshape(src2.getdata(), (height, width));
+            diff = src2 - src1;
             dogpyr.append(diff);
     
     return dogpyr;

@@ -2,6 +2,15 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+def plotImage(img, glay=False):
+    fig = plt.figure()
+    fig.add_subplot(111);
+    if glay is True:
+        plt.imshow(img, cmap='gray');
+    else:
+        plt.imshow(img);
+    plt.show()
+
 def export_pyramid(filepath, pyramid, nLayers):
     print "Exporting \"" + filepath + "\" ......";
     fileHandler = open(filepath, "w");

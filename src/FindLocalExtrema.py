@@ -10,9 +10,8 @@ def findScaleSpaceExtrema(gpyr, dogpyr, nOctaves, nOctaveLayers,
                           SIFT_ORI_SIG_FCTR, SIFT_ORI_RADIUS):
     print "Finding scale space extrema......";
     threshold = math.floor(0.5 * contrastThreshold / nOctaveLayers * 255 * SIFT_FIXPT_SCALE);
-    keypoints = [];
-    
     n = SIFT_ORI_HIST_BINS;
+    keypoints = [];
     
     for o in range(nOctaves):
         for i in range(1, nOctaveLayers + 1):
@@ -22,8 +21,8 @@ def findScaleSpaceExtrema(gpyr, dogpyr, nOctaves, nOctaveLayers,
             next_l = dogpyr[idx + 1];
             rows, cols = np.shape(img);
             
-            for r in range(1, rows - SIFT_IMG_BORDER):
-                for c in range(1, cols - SIFT_IMG_BORDER):
+            for r in range(SIFT_IMG_BORDER, rows - SIFT_IMG_BORDER):
+                for c in range(SIFT_IMG_BORDER, cols - SIFT_IMG_BORDER):
                     val = img[r, c];
                     if (np.abs(val) > threshold and
                         ((val > 0 and val >= img[r - 1, c - 1] and val >= img[r - 1, c]
