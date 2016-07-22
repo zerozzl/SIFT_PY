@@ -3,8 +3,6 @@ import numpy as np
 import math
 from GaussianBlur import GaussianBlur
 
-import cv2
-
 # 构建高斯金字塔
 def build_gaussian_pyramid(base, sigma, nOctaves, nOctaveLayers):
     print "Building gaussian pyramid......";

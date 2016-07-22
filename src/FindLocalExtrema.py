@@ -2,6 +2,7 @@
 import numpy as np
 import math
 from KeyPoint import KeyPoint
+import sys
 
 def findScaleSpaceExtrema(gpyr, dogpyr, nOctaves, nOctaveLayers,
                           contrastThreshold, edgeThreshold, sigma,
@@ -82,15 +83,15 @@ def adjustLocalExtrema(dog_pyr, octv, layer, row, col, nOctaveLayers,
     deriv_scale = 0.5 * img_scale;  # 1 / 2h
     second_deriv_scale = img_scale;  # 1 / h^2, h等于1，所以可以直接表示
     cross_deriv_scale = 0.25 * img_scale;  # 1 / (4 * h^2), h等于1，所以可以直接表示
-     
-    xc = 0; xr = 0; xi = 0;
+    
+    xi = 0; xr = 0; xc = 0;
     i = 0;
-     
+    
     while(i < SIFT_MAX_INTERP_STEPS):
-        idx = octv * (nOctaveLayers + 2) + layer;  
-        img = dog_pyr[idx];  
-        prev_l = dog_pyr[idx - 1];  
-        next_l = dog_pyr[idx + 1]; 
+        idx = octv * (nOctaveLayers + 2) + layer;
+        img = dog_pyr[idx];
+        prev_l = dog_pyr[idx - 1];
+        next_l = dog_pyr[idx + 1];
         
         dD = np.array([(img[row, col + 1] - img[row, col - 1]) * deriv_scale,
                        (img[row + 1, col] - img[row - 1, col]) * deriv_scale,
@@ -116,12 +117,17 @@ def adjustLocalExtrema(dog_pyr, octv, layer, row, col, nOctaveLayers,
         except Exception:
             return False, None, None, None, None;
         
-        xc = -X[0];
-        xr = -X[1];
         xi = -X[2];
+        xr = -X[1];
+        xc = -X[0];
         
-        if(np.abs(xc) < 0.5 and np.abs(xr) < 0.5 and np.abs(xi) < 0.5):
+        if(np.abs(xi) < 0.5 and np.abs(xr) < 0.5 and np.abs(xc) < 0.5):
             break;
+        
+        if(np.abs(xi) > float(sys.maxint / 3)
+           or np.abs(xr) > float(sys.maxint / 3)
+           or np.abs(xc) > float(sys.maxint / 3)):
+            return False, None, None, None, None;
         
         col = int(col + round(xc));
         row = int(row + round(xr));
@@ -142,15 +148,15 @@ def adjustLocalExtrema(dog_pyr, octv, layer, row, col, nOctaveLayers,
     img = dog_pyr[idx];
     prev_l = dog_pyr[idx - 1];
     next_l = dog_pyr[idx + 1];
-     
+    
     dD = np.array([(img[row, col + 1] - img[row, col - 1]) * deriv_scale,
                    (img[row + 1, col] - img[row - 1, col]) * deriv_scale,
                    (next_l[row, col] - prev_l[row, col]) * deriv_scale]);
-     
+    
     contr = img[row, col] * img_scale + np.dot(dD, [xc, xr, xi]) * 0.5;
     if(np.abs(contr) * nOctaveLayers < contrastThreshold):
         return False, None, None, None, None;
-      
+    
     dcc = (img[row, col + 1] + img[row, col - 1] - img[row, col] * 2.0) * second_deriv_scale;
     drr = (img[row + 1, col] + img[row - 1, col] - img[row, col] * 2.0) * second_deriv_scale;
     dcr = (img[row + 1, col + 1] - img[row + 1, col - 1] - img[row - 1, col + 1] + 
@@ -173,4 +179,5 @@ def adjustLocalExtrema(dog_pyr, octv, layer, row, col, nOctaveLayers,
 def calcOrientationHist(img, pt, radius, sigma, n):
     len = (radius * 2 + 1) * (radius * 2 + 1);
     expf_scale = -1.0 / (2.0 * sigma * sigma);
+    
 
